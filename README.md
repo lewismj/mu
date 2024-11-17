@@ -2,7 +2,6 @@
 
 #### Playground
 
-    Contains Jupyter notebooks.
-    lewismj:
-        - auto differenatiation.
-        - Standford Deep Learning On-line course.
+Contains Jupyter notebooks:
+- auto differentiation.
+- Standford Deep Learning On-line course.
