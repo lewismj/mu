@@ -5,7 +5,10 @@ torch==2.5.1
 scikit-learn==1.5.2
 tensorflow==2.18.0
 keras==3.6.0
+polars==1.14.0
 # Jupyter
 ipympl==0.9.4
 qbstyles==0.1.4
 tqdm==4.67.0
+# Examples using QuantLib
+QuantLib==1.36
