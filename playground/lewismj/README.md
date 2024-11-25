@@ -7,3 +7,4 @@
   Jupyter notebooks).
     - *Supervised Machine Learning*: Regression and Classification.
     - *Advanced Learning Algorithms*: Neural Networks.
+    - *Unsupervised Learning*, Recommenders, Reinforcement Learning.
