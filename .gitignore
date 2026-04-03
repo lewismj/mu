@@ -38,6 +38,7 @@
 # CMake
 cmake-build-*/
 out
+build
 
 # Visual Studio/Visual Code
 .vs
