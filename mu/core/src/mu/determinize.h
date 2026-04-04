@@ -147,8 +147,7 @@ namespace mu {
                 }
             }
 
-            assert(total > 0.0f
-                   && "no valid assignment for unseen card");
+            assert(total > 0.0f && "no valid assignment for unseen card");
 
             /* Weighted roulette selection. */
             float r = udist(rng) * total;
@@ -160,8 +159,7 @@ namespace mu {
             }
 
             const seat s = opp_to_seat(obs, chosen);
-            result.hands[static_cast<uint8_t>(s)] |=
-                (card_mask{1} << c);
+            result.hands[static_cast<uint8_t>(s)] |= (card_mask{1} << c);
             remaining[chosen]--;
         }
 

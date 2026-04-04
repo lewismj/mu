@@ -1003,3 +1003,175 @@ struct soft_rule {
 | `alpha_beta.h` | Alpha-beta minimax search policy for DDS |
 | `dds.h` | `dds_solve<V, Policy>()`: Double Dummy Solver interface |
 
+---
+
+## Python Bindings
+
+The library includes Python bindings via [nanobind](https://github.com/wjakob/nanobind), exposing the C++ engine to Python for:
+- **ML Integration** — Direct use with PyTorch, JAX, TensorFlow
+- **Flexible Agents** — Hot-swappable players without recompilation
+- **Tournament Management** — High-level game orchestration
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Python Layer                                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
+│  │ mu.agents   │  │ mu.game     │  │ mu (core wrapper)   │ │
+│  │ RandomPlayer│  │ Tournament  │  │ WhistState, Seat,   │ │
+│  │ MCTSPlayer  │  │ GameRunner  │  │ legal_moves, etc.   │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
+│         └────────────────┴─────────────────────┘           │
+│                         │                                   │
+│  ───────────────────────┴─────────────────────────────────  │
+│                    _mu_core (nanobind)                      │
+└─────────────────────────────────────────────────────────────┘
+                           │
+┌─────────────────────────────────────────────────────────────┐
+│  C++ Layer (mu_core)                                        │
+│  game_state, belief_state, rules, ismcts_search, rollout    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Quick Start
+
+```python
+import mu
+from mu.agents import RandomPlayer, MCTSPlayer
+from mu.game import GameRunner
+
+# Seed for reproducibility
+mu.seed(42)
+
+# Create a new game
+game = mu.whist_new_game(trump=mu.SPADES, dealer=mu.NORTH)
+print(f"Current player: {game.current_player}")
+print(f"North's hand: {mu.mask_str(game.hands[0])}")
+
+# Get legal moves
+legal = mu.legal_moves(game)
+print(f"Legal moves: {mu.mask_str(legal)}")
+
+# Play a card
+card = mu.mask_to_cards(legal)[0]
+mu.play_card(game, game.current_player, card)
+```
+
+### Running a Game with Agents
+
+```python
+from mu.agents import RandomPlayer, MCTSPlayer
+from mu.game import GameRunner
+import mu
+
+runner = GameRunner(verbose=True)
+players = {
+    mu.NORTH: MCTSPlayer(iterations=1000),
+    mu.EAST:  RandomPlayer(),
+    mu.SOUTH: MCTSPlayer(iterations=1000),
+    mu.WEST:  RandomPlayer(),
+}
+
+result = runner.play_game(players, trump=mu.SPADES, dealer=mu.NORTH, seed=42)
+print(f"NS won {result.ns_tricks} tricks, EW won {result.ew_tricks} tricks")
+```
+
+### Running a Tournament
+
+```python
+from mu.agents import RandomPlayer, MCTSPlayer
+from mu.game import Tournament
+import mu
+
+def make_player(seat: mu.Seat):
+    # MCTS for NS, Random for EW
+    if mu.partnership_of(seat) == 0:
+        return MCTSPlayer(iterations=500)
+    return RandomPlayer()
+
+tournament = Tournament(make_player, verbose=True)
+result = tournament.run(num_games=100, base_seed=123)
+
+print(f"NS win rate: {result.ns_win_rate:.1%}")
+print(f"Games/sec: {result.games_played / result.total_time:.1f}")
+```
+
+### Using ISMCTS Search Directly
+
+```python
+import mu
+
+# Setup game and belief state
+game = mu.whist_new_game(trump=mu.HEARTS, dealer=mu.SOUTH)
+belief = mu.WhistBelief()
+belief.init(game, game.current_player)
+
+# Run ISMCTS search
+best_card = mu.whist_search(game, belief, iterations=2000, exploration=1.414)
+print(f"Best move: {mu.card_str(best_card)}")
+
+# Sample a determinized world
+sampled = mu.whist_determinize(game, belief)
+print(f"Sampled East hand: {mu.mask_str(sampled.hands[1])}")
+```
+
+### API Reference
+
+#### Core Types
+
+| Type | Description |
+|------|-------------|
+| `Seat` | Enum: `NORTH`, `EAST`, `SOUTH`, `WEST` |
+| `Suit` | Enum: `SPADES`, `HEARTS`, `DIAMONDS`, `CLUBS` |
+| `WhistState` | Full game state (hands, played, trick, trump, etc.) |
+| `WhistBelief` | Card probability matrix for an observer |
+| `TrickState` | Current trick (lead_suit, cards played, winner) |
+
+#### Functions
+
+| Function | Description |
+|----------|-------------|
+| `seed(n)` | Seed the internal RNG for reproducibility |
+| `whist_new_game(trump, dealer)` | Create a new shuffled game |
+| `legal_moves(state)` | Get legal moves as a card_mask |
+| `play_card(state, seat, card)` | Play a card (mutates state) |
+| `whist_search(state, belief, iters, explore)` | Run ISMCTS, return best card |
+| `whist_determinize(state, belief)` | Sample a world from beliefs |
+| `whist_rollout(state)` | Random playout, return tricks won |
+
+#### Card Helpers
+
+| Function | Description |
+|----------|-------------|
+| `mask_to_cards(mask)` | Convert bitmask to list of card indices |
+| `cards_to_mask(cards)` | Convert list of indices to bitmask |
+| `card_str(card)` | Human-readable card (e.g., "As", "Kh") |
+| `mask_str(mask)` | Human-readable card set |
+| `suit_of(card)` | Get card's suit |
+| `rank_of(card)` | Get card's rank (0-12) |
+| `popcount(mask)` | Count cards in mask |
+
+#### Seat Helpers
+
+| Function | Description |
+|----------|-------------|
+| `next_seat(seat)` | Next seat clockwise |
+| `partner_of(seat)` | Partner's seat (opposite) |
+| `partnership_of(seat)` | Partnership index (0=NS, 1=EW) |
+| `seat_to_opp(observer, seat)` | Map seat to opponent index (0-2) |
+| `opp_to_seat(observer, opp)` | Map opponent index back to seat |
+
+### Building the Python Module
+
+```bash
+# In WSL/Linux
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target _mu_core -j
+
+# The module is built at: build/mu/core_py/_mu_core.cpython-*.so
+# Copy to your Python path or install:
+cp build/mu/core_py/_mu_core.*.so /path/to/your/project/
+cp -r mu/core_py/src/mu /path/to/your/project/
+```
+

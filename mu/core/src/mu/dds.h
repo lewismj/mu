@@ -73,9 +73,7 @@ namespace mu {
         typename SearchPolicy = alpha_beta_policy<Variant>,
         typename Rules = rules<Variant>
     >
-    [[nodiscard]] dds_result dds_solve(
-            const game_state<Variant>& state,
-            const dds_config& config = {}) {
+    [[nodiscard]] dds_result dds_solve( const game_state<Variant>& state, const dds_config& config = {}) {
 
         using TT = typename SearchPolicy::TT;
 
@@ -95,23 +93,20 @@ namespace mu {
         constexpr int NEG_INF = -100;
         constexpr int POS_INF = 100;
 
-        const int tricks_for_leader = SearchPolicy::search(
-            state, NEG_INF, POS_INF, hash, tt);
+        const int tricks_for_leader = SearchPolicy::search( state, NEG_INF, POS_INF, hash, tt);
 
         // Convert to N/S tricks
         if (leader_partnership == 0) {
             // Leader is N/S - tricks_for_leader is N/S tricks
-            result.tricks_ns[static_cast<uint8_t>(leader)] =
-                static_cast<int8_t>(tricks_for_leader);
+            result.tricks_ns[static_cast<uint8_t>(leader)] = static_cast<int8_t>(tricks_for_leader);
         } else {
             // Leader is E/W - tricks_for_leader is E/W tricks
             // N/S tricks = total - E/W tricks
-            result.tricks_ns[static_cast<uint8_t>(leader)] =
-                static_cast<int8_t>(total_tricks - tricks_for_leader);
+            result.tricks_ns[static_cast<uint8_t>(leader)] = static_cast<int8_t>(total_tricks - tricks_for_leader);
         }
 
         // Get best move from TT
-        const int8_t depth = static_cast<int8_t>(
+        const auto depth = static_cast<int8_t>(
             ops::popcount(state.hands[0]) +
             ops::popcount(state.hands[1]) +
             ops::popcount(state.hands[2]) +
@@ -158,7 +153,7 @@ namespace mu {
     template<typename Variant>
     [[nodiscard]] int dds_tricks(const game_state<Variant>& state) {
         const auto result = dds_solve<Variant>(state);
-        const uint8_t leader = static_cast<uint8_t>(state.current_player);
+        const auto leader = static_cast<uint8_t>(state.current_player);
         return result.tricks_ns[leader];
     }
 

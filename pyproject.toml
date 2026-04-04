@@ -1,0 +1,83 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "nanobind>=2.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "mu"
+version = "0.1.0"
+description = "High-performance trick-taking card game engine with ISMCTS"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [
+    { name = "Lewis" }
+]
+keywords = ["card-games", "whist", "bridge", "mcts", "game-engine", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: Games/Entertainment",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-benchmark",
+]
+ml = [
+    "numpy>=1.20",
+    "torch>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/lewis/mu"
+Repository = "https://github.com/lewis/mu"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+cmake.build-type = "Release"
+cmake.args = ["-DCMAKE_BUILD_TYPE=Release"]
+wheel.install-dir = "."
+
+# Map the Python source to the wheel
+[[tool.scikit-build.wheel.packages]]
+find = "mu/core_py/src"
+include = ["mu", "mu.*"]
+
+[tool.scikit-build.cmake.define]
+CMAKE_CXX_STANDARD = "23"
+
+# For development installs without building the C++ extension,
+# you can create a .pth file or use PYTHONPATH to include mu/core_py/src
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
