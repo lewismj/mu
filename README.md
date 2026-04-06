@@ -796,7 +796,7 @@ enum class tt_bound : uint8_t {
 
 ### Alpha-Beta Search
 
-The DDS uses **minimax with alpha-beta pruning** (Parition search would be better, but this is easy to implement for now):
+The DDS uses **minimax with alpha-beta pruning** (Partition search would be better, but this is easy to implement for now):
 
 ```cpp
 int search_impl(state, alpha, beta, hash, tt, root_partnership) {
