@@ -1,8 +1,10 @@
 # Mu Core Project Design
 
-**mu/core** is a high-performance C++ library for trick-taking card games (e.g., Whist, Bridge, Jass) featuring 
+**mu/core** is a C++ library for trick-taking card games (e.g., Whist, Bridge, Jass) featuring 
 an **Information Set Monte Carlo Tree Search (ISMCTS)** engine. It uses bitboard representations for card sets 
 and template-based game variants for zero-overhead abstractions.
+
+Very much _work in progres_.
 
 ---
 
