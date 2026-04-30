@@ -1,3 +1,4 @@
+
 # Mu Core Project Design
 
 **mu/core** is a C++ library for trick-taking card games (e.g., Whist, Bridge, Jass) featuring 
